@@ -2,6 +2,7 @@ const path = require('path')
 const http = require('http')
 const express = require('express')
 const socketio = require('socket.io')
+const { loadavg } = require('os')
 
 const app = express()
 const server = http.createServer(app)
@@ -28,6 +29,10 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect',()=>{
         io.emit('message','A user has left')
+    })
+
+    socket.on('sendLocation',(location)=>{
+        io.emit('message',`latitude: ${location.latitude} and longitude: ${location.longitude}`)
     })
 })
 
