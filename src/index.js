@@ -5,7 +5,6 @@ const socketio = require('socket.io')
 const { loadavg } = require('os')
 const Filter = require('bad-words')
 const {generateMessage, generateLocationMessage} =  require('./utils/message')
-const moment = require('moment')
 
 
 const app = express()
