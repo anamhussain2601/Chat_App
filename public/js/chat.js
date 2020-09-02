@@ -1,3 +1,5 @@
+// const {moment} = require('moment')
+
 const socket = io()
 
 //elements
@@ -22,7 +24,7 @@ $messageForm.addEventListener('submit', (e) => {
     const message = e.target.elements.message.value
     socket.emit('sendMessage', message, (error) => {
         $messageFormButton.removeAttribute('disabled')
-        $messageFormInput.value =''
+        $messageFormInput.value = ''
         $messageFormInput.focus()
         if (error) {
             return console.log(error)
@@ -33,21 +35,25 @@ $messageForm.addEventListener('submit', (e) => {
 
 
 socket.on('message', (message) => {
+    console.log('hh')
     console.log(message)
     const html = Mustache.render(messageTemplate, {
-        message
+        message: message.text,
+        createdAt: moment(message.createdAt).format('h:mm a')
     })
     $messages.insertAdjacentHTML('beforeend', html)
-    
+
 })
 
-socket.on('locationMessage', (url) => {
-    console.log(url)
+socket.on('locationMessage', (message) => {
+    console.log(message)
     const html = Mustache.render(urlTemplate, {
-        url
+        url: message.url,
+        createdAt: moment(message.createdAt).format('h:mm a')
+
     })
     $messages.insertAdjacentHTML('beforeend', html)
-    
+
 })
 
 $sendLocation.addEventListener('click', () => {
@@ -55,7 +61,7 @@ $sendLocation.addEventListener('click', () => {
         return alert('Geolocation is not supported by your browser.')
     }
 
-    $sendLocation.setAttribute('disabled','disabled')
+    $sendLocation.setAttribute('disabled', 'disabled')
 
     navigator.geolocation.getCurrentPosition((position) => {
         console.log(position)

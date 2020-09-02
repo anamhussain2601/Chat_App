@@ -4,6 +4,9 @@ const express = require('express')
 const socketio = require('socket.io')
 const { loadavg } = require('os')
 const Filter = require('bad-words')
+const {generateMessage, generateLocationMessage} =  require('./utils/message')
+const moment = require('moment')
+
 
 const app = express()
 const server = http.createServer(app)
@@ -17,12 +20,8 @@ app.use(express.static(publicDirectoryPath))
 
 io.on('connection', (socket) => {
     console.log('New WebSocket connection')
-
-
-
-
-    socket.emit('message', 'Welcome')
-    socket.broadcast.emit('message', 'a new user has joined')  //emits to everybody expect itself
+    socket.emit('message', generateMessage('Welcome!'))
+    socket.broadcast.emit('message', 'A new user has joined')  //emits to everybody expect itself
 
     socket.on('sendMessage',(message, callback)=>{
 
@@ -32,7 +31,7 @@ io.on('connection', (socket) => {
             return callback('Profanity is not allowed!')
         }
 
-        io.emit('message',message) //triggers to every single client
+        io.emit('message',generateMessage(message)) //triggers to every single client
         callback('Delivered!')
     })
 
@@ -41,7 +40,7 @@ io.on('connection', (socket) => {
     })
 
     socket.on('sendLocation',(location, cb)=>{
-        io.emit('locationMessage',`https://google.com/maps?q=${location.latitude},${location.longitude}`)
+        io.emit('locationMessage',generateLocationMessage(`https://google.com/maps?q=${location.latitude},${location.longitude}`))
         cb()
     })
 })
