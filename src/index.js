@@ -6,6 +6,7 @@ const { loadavg } = require('os')
 const Filter = require('bad-words')
 const {generateMessage, generateLocationMessage} =  require('./utils/message')
 const { SIGCHLD } = require('constants')
+const {addUser, removeUser, getUser, getUsersInRoom} = require('./utils/users')
 
 
 const app = express()
@@ -21,10 +22,18 @@ app.use(express.static(publicDirectoryPath))
 io.on('connection', (socket) => {
     console.log('New WebSocket connection')
 
-    socket.on('join', ({username, room}) => {
-        socket.join(room)
+    socket.on('join', ({username, room},callback) => {
+
+        const {error, user} = addUser({id: socket.id, username, room})
+
+
+        if(error) {
+            return callback(error )
+        }
+
+        socket.join(user.room)
         socket.emit('message', generateMessage('Welcome!'))
-        socket.broadcast.to(room).emit('message', generateMessage(`${username} has joined!`))
+        socket.broadcast.to(user.room).emit('message', generateMessage(`${user.username} has joined!`))
         
     })
 
@@ -41,7 +50,13 @@ io.on('connection', (socket) => {
     })
 
     socket.on('disconnect',()=>{
-        io.emit('message','A user has left')
+        const user = removeUser(socket.id)
+
+        if( user) {
+            io.to(user.room).emit('message',generateMessage(`${user.username} has left`))
+
+        }
+ 
     })
 
     socket.on('sendLocation',(location, cb)=>{
