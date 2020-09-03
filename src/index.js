@@ -5,6 +5,7 @@ const socketio = require('socket.io')
 const { loadavg } = require('os')
 const Filter = require('bad-words')
 const {generateMessage, generateLocationMessage} =  require('./utils/message')
+const { SIGCHLD } = require('constants')
 
 
 const app = express()
@@ -19,8 +20,13 @@ app.use(express.static(publicDirectoryPath))
 
 io.on('connection', (socket) => {
     console.log('New WebSocket connection')
-    socket.emit('message', generateMessage('Welcome!'))
-    socket.broadcast.emit('message', 'A new user has joined')  //emits to everybody expect itself
+
+    socket.on('join', ({username, room}) => {
+        socket.join(room)
+        socket.emit('message', generateMessage('Welcome!'))
+        socket.broadcast.to(room).emit('message', generateMessage(`${username} has joined!`))
+        
+    })
 
     socket.on('sendMessage',(message, callback)=>{
 
